@@ -1,33 +1,34 @@
 use ibm_5150::*; 
 
-// #[cfg(not(debug_assertions))]
-fn main() -> GameResult {
-    let mut app = IbmPc::new();
-    let win_mode = WindowMode::default()
-                            .dimensions(720., 350.)
-                            .resize_on_scale_factor_change(true);
+use minifb::{Key, Window, WindowOptions};
 
-    let cb = ggez::ContextBuilder::new("IBM 5150", "Gonzalo").window_mode(win_mode);
- 
+const WIDTH: usize = 720;
+const HEIGHT: usize = 350;
 
-    let (ctx, event_loop) = cb.build()?;
+fn main() {
+    let mut buffer: Vec<u32> = vec![0; WIDTH * HEIGHT];
+    let mut sys = IbmPc::new();
 
-    //graphics::set_mode(&mut ctx, win_mode)?;
+    let mut window = Window::new(
+        "Test - ESC to exit",
+        WIDTH,
+        HEIGHT,
+        WindowOptions::default(),
+    )
+    .unwrap_or_else(|e| {
+        panic!("{}", e);
+    });
 
-    app.sys.rst();
-    app.sys.load_roms();
+    // Limit to max ~60 fps update rate
+    window.limit_update_rate(Some(std::time::Duration::from_micros(20000)));
 
-    event::run(ctx, event_loop, app);
+    while window.is_open() && !window.is_key_down(Key::Escape) {
+        sys.update();
+        sys.get_frame(&mut buffer);
+
+        // We unwrap here as we want this code to exit if it fails. Real applications may want to handle this in a different way
+        window
+            .update_with_buffer(&buffer, WIDTH, HEIGHT)
+            .unwrap();
+    }
 }
-
-// #[cfg(debug_assertions)]
-// fn main() {
-//     let mut app = IbmPc::new();
-
-//     app.sys.rst();
-//     app.sys.load_roms();
-
-//     loop {
-//         app.sys.update();
-//     }
-// }
