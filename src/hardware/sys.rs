@@ -42,6 +42,13 @@ impl System {
         self.running = false;
     }
 
+    pub fn debug(&mut self) {
+        let (prt, msg) = debug_82(&mut self.cpu);
+        if prt {
+            println!("{}", msg);
+        }
+    }
+
     // Llamar cada frame
     pub fn update(&mut self) {
         let max_cycles = (4_772_726.7 / DESIRED_FPS) as u32;

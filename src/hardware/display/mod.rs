@@ -1,17 +1,16 @@
-use ggez::{Context, graphics::{ImageGeneric, GlBackendSpec, Color}};
-
 pub mod ibm_mda;
 pub mod crtc6845;
 
 pub trait DisplayAdapter {
-    fn create_frame(&mut self, ctx: &mut Context, vram: &[u8]) -> ImageGeneric<GlBackendSpec>;
+    // fn create_frame(&mut self, ctx: &mut Context, vram: &[u8]) -> ImageGeneric<GlBackendSpec>;
+    fn create_frame(&mut self, vram: &[u8], frame: &mut [u8]);
     fn render_font(&mut self, char: Char, width: usize, height: usize);
 }
 
 pub struct Char {
     pub index: usize,
-    pub background_color: Color,
-    pub foreground_color: Color,
+    pub background_color: [u8; 4],
+    pub foreground_color: [u8; 4],
 
     pub bright: bool,
     pub underline: bool,
@@ -30,14 +29,14 @@ impl Char {
         // self.underline = attr & 0x07 == 0x01;
 
         // if matches!(attr, 0x00 | 0x08 | 0x80 | 0x88) {
-        //     self.background_color = Color::BLACK;
-        //     self.foreground_color = Color::BLACK;
+        //     self.background_color = [0x00, 0x00, 0x00, 0xFF];
+        //     self.foreground_color = [0x00, 0x00, 0x00, 0xFF];
         // } else if matches!(attr, 0x70 | 0x78 | 0xF0 | 0xF8) {
-        //     self.background_color = Color::WHITE;
-        //     self.foreground_color = Color::BLACK;
+        //     self.background_color = [0xFF; 4];
+        //     self.foreground_color = [0x00, 0x00, 0x00, 0xFF];
         // } else {
-        //     self.background_color = Color::BLACK;
-        //     self.foreground_color = Color::WHITE;
+        //     self.background_color = [0x00, 0x00, 0x00, 0xFF];
+        //     self.foreground_color = [0xFF; 4];
         // }
         self.bright = attr & 0x08 > 0;
         self.underline = attr & 0x07 == 0x01;
@@ -47,25 +46,25 @@ impl Char {
 
         match (back, front) {
             (0b000, 0b111) => {
-                self.foreground_color = Color::WHITE;
-                self.background_color = Color::BLACK;
+                self.foreground_color = [0xFF; 4];
+                self.background_color = [0x00, 0x00, 0x00, 0xFF];
             },
             (0b111, 0b000) => {
-                self.foreground_color = Color::BLACK;
-                self.background_color = Color::WHITE;
+                self.foreground_color = [0x00, 0x00, 0x00, 0xFF];
+                self.background_color = [0xFF; 4];
             },
             (0b000, 0b000) => {
-                self.foreground_color = Color::BLACK;
-                self.background_color = Color::BLACK;
+                self.foreground_color = [0x00, 0x00, 0x00, 0xFF];
+                self.background_color = [0x00, 0x00, 0x00, 0xFF];
             },
             (0b111, 0b111) => {
-                self.foreground_color = Color::WHITE;
-                self.background_color = Color::WHITE;
+                self.foreground_color = [0xFF; 4];
+                self.background_color = [0xFF; 4];
             },
 
             _ => {
-                self.foreground_color = Color::WHITE;
-                self.background_color = Color::BLACK;
+                self.foreground_color = [0xFF; 4];
+                self.background_color = [0x00, 0x00, 0x00, 0xFF];
             }
         }
 
@@ -77,8 +76,8 @@ impl Default for Char {
     fn default() -> Self {
         Self {
             index: 0x00,
-            background_color: Color::BLACK,
-            foreground_color: Color::WHITE,
+            background_color: [0x00, 0x00, 0x00, 0xFF],
+            foreground_color: [0xFF; 4],
 
             bright: false,
             underline: false,

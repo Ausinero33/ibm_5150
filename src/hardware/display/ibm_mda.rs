@@ -1,12 +1,11 @@
 use std::io::Read;
 
-use ggez::{graphics::{ImageGeneric, GlBackendSpec, Image}, Context};
-
 use crate::hardware::peripheral::Peripheral;
 
 use super::{DisplayAdapter, Char, crtc6845::CRTC6845};
 
 const IMG_BUFF_SIZE: usize = 720 * 350 * 4;
+
 // const IMG_SIZE: usize = 720 * 350;
 
 #[allow(dead_code)]
@@ -54,20 +53,26 @@ impl IbmMDA {
 }
 
 impl DisplayAdapter for IbmMDA {
-    fn create_frame(&mut self, ctx: &mut Context, vram: &[u8]) -> ImageGeneric<GlBackendSpec> {
+    fn create_frame(&mut self, vram: &[u8], frame: &mut [u8]) {
         if !self.enabled() {
-            return Image::from_rgba8(ctx, 720, 350, &[0x00; IMG_BUFF_SIZE]).unwrap();
+            let a: Vec<u8> = (0..IMG_BUFF_SIZE).map(|x| if x % 4 == 3 {0xFF} else {0x00}).collect();
+            frame.copy_from_slice(&a);
         }
-
-        let iter = vram.chunks(2).enumerate();
-        for v in iter {
-            let character = Char::new(v.1[0] as usize).decode_colors(v.1[1]);
-
-            self.render_font(character, v.0 % 80, v.0 / 80);
-        }
-
-        Image::from_rgba8(ctx, 720, 350, &self.img_buffer).unwrap()
     }
+    // fn create_frame(&mut self, ctx: &mut Context, vram: &[u8]) -> ImageGeneric<GlBackendSpec> {
+    //     if !self.enabled() {
+    //         return Image::from_rgba8(ctx, 720, 350, &[0x00; IMG_BUFF_SIZE]).unwrap();
+    //     }
+
+    //     let iter = vram.chunks(2).enumerate();
+    //     for v in iter {
+    //         let character = Char::new(v.1[0] as usize).decode_colors(v.1[1]);
+
+    //         self.render_font(character, v.0 % 80, v.0 / 80);
+    //     }
+
+    //     Image::from_rgba8(ctx, 720, 350, &self.img_buffer).unwrap()
+    // }
 
     fn render_font(&mut self, character: Char, width: usize, height: usize) {
         for i in 0..14 {
@@ -87,15 +92,15 @@ impl DisplayAdapter for IbmMDA {
                 };
     
                 let color = if pixel > 0 { 
-                    character.foreground_color.to_rgba()
+                    character.foreground_color
                 } else {
-                    character.background_color.to_rgba()
+                    character.background_color
                 };
 
-                self.img_buffer[((height * 14 + i) * 720 + (width * 9 + j)) * 4] = color.0;
-                self.img_buffer[((height * 14 + i) * 720 + (width * 9 + j)) * 4 + 1] = color.1;
-                self.img_buffer[((height * 14 + i) * 720 + (width * 9 + j)) * 4 + 2] = color.2;
-                self.img_buffer[((height * 14 + i) * 720 + (width * 9 + j)) * 4 + 3] = color.3;
+                self.img_buffer[((height * 14 + i) * 720 + (width * 9 + j)) * 4] = color[0];
+                self.img_buffer[((height * 14 + i) * 720 + (width * 9 + j)) * 4 + 1] = color[1];
+                self.img_buffer[((height * 14 + i) * 720 + (width * 9 + j)) * 4 + 2] = color[2];
+                self.img_buffer[((height * 14 + i) * 720 + (width * 9 + j)) * 4 + 3] = color[3];
             }
         }
     }
