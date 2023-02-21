@@ -12,3 +12,4 @@ winit_input_helper = "0.13.0"
 mint = "0.5.9"
 rand = "0.8.5"
 lazy_static = "1.4.0"
+game-loop = { version = "0.10.1", features = ["winit"] }

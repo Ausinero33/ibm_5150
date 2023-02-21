@@ -58,6 +58,15 @@ impl DisplayAdapter for IbmMDA {
             let a: Vec<u8> = (0..IMG_BUFF_SIZE).map(|x| if x % 4 == 3 {0xFF} else {0x00}).collect();
             frame.copy_from_slice(&a);
         }
+
+        let iter = vram.chunks(2).enumerate();
+        for v in iter {
+            let character = Char::new(v.1[0] as usize).decode_colors(v.1[1]);
+
+            self.render_font(character, v.0 % 80, v.0 / 80);
+        }
+
+        frame.copy_from_slice(&self.img_buffer)
     }
     // fn create_frame(&mut self, ctx: &mut Context, vram: &[u8]) -> ImageGeneric<GlBackendSpec> {
     //     if !self.enabled() {

@@ -521,6 +521,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "game-loop"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2231caff85660ae373bc55ece896f923ba8fe2cee1c6950c15dc54a82e55bdce"
+dependencies = [
+ "wasm-bindgen",
+ "web-sys",
+ "winit 0.27.5",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -601,6 +612,7 @@ checksum = "dfa686283ad6dd069f105e5ab091b04c62850d3e4cf5d67debad1933f55023df"
 name = "ibm_5150"
 version = "0.1.0"
 dependencies = [
+ "game-loop",
  "lazy_static",
  "mint",
  "pixels",

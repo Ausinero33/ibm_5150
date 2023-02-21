@@ -1,19 +1,16 @@
 use std::time::Duration;
 
 use ibm_5150::*;
-use ibm_5150::hardware::display::DisplayAdapter;
 use pixels::{Error, SurfaceTexture, Pixels};
-use winit::{event_loop::EventLoop, dpi::LogicalSize, window::WindowBuilder};
 use winit_input_helper::WinitInputHelper;
+use game_loop::{game_loop, winit::{dpi::LogicalSize, event_loop::EventLoop, window::WindowBuilder}, Time, TimeTrait};
 
-const FPS: u32 = 50;
-const TIMESTEP: Duration = Duration::from_nanos(1_000_000_000 / FPS as u64);
 
 fn main() -> Result<(), Error> {
     // env_logger::init();
     let event_loop = EventLoop::new();
     
-    let mut input = WinitInputHelper::new();
+    let mut _input = WinitInputHelper::new();
     let window = {
         let size = LogicalSize::new(720., 350.);
         WindowBuilder::new()
@@ -25,14 +22,33 @@ fn main() -> Result<(), Error> {
             .unwrap()
     };
 
-    let mut pixels = {
+    let pixels = {
         let window_size = window.inner_size();
         let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
         Pixels::new(720, 350, surface_texture)?
     };
-    let mut state = IbmPc::new(pixels);
+    let state = IbmPc::new(pixels);
 
-    event_loop.run(move |event, _, control_flow| {
+    game_loop(
+        event_loop,
+        window,
+        state,
+        DESIRED_FPS,
+        0.1,
+        move |g| {
+            g.game.update();
+        },
+        move |g| {
+            g.game.draw();
+            g.game.pixels.render().unwrap();
 
-    });
+            let dt = TIMESTEP.as_secs_f64() - Time::now().sub(&g.current_instant());
+            if dt > 0.0 {
+                std::thread::sleep(Duration::from_secs_f64(dt));
+            }
+        },
+        move |_g, _event| {
+
+        }
+    )
 }

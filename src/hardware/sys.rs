@@ -43,22 +43,18 @@ impl System {
     }
 
     pub fn debug(&mut self) {
-        let (prt, msg) = debug_82(&mut self.cpu);
-        if prt {
-            println!("{}", msg);
-        }
+        debug_82(&mut self.cpu);
     }
 
     // Llamar cada frame
     pub fn update(&mut self) {
-        let max_cycles = (4_772_726.7 / DESIRED_FPS) as u32;
+        let max_cycles = (4_772_726.7 / DESIRED_FPS as f32) as u32;
         let mut cycles_ran = 0;
 
         while cycles_ran <= max_cycles {
             if self.cpu.halted {
                 print!("HALTED\r");
-                cycles_ran += 1;
-                continue;
+                break;
             }
             self.step(&mut cycles_ran);
         }
